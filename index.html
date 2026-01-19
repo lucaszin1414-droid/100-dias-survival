@@ -1,439 +1,241 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta name="description" content="Sobreviva 100 Dias: Jogo online de sobrevivência PWA, com inventário, eventos aleatórios e conquistas.">
-<meta name="keywords" content="Jogo, PWA, Sobrevivência, HTML5, JavaScript, 100 dias">
-<meta name="author" content="Seu Nome">
-<meta name="robots" content="index, follow">
-<meta name="google-site-verification" content="MNWcD7sdoqGlWrQnGLeKgTEVaEvUeI9oSSvDL80BW_4" />
 <meta charset="UTF-8">
-<title>Sobreviva 100 Dias</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#070707">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>100 Dias Survival - ByteQuest</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:monospace}
-body{background:#070707;color:#e0e0e0;height:100vh;transition:.4s}
-body.perigo{background:#180000}
-body.critico{background:#300000;animation:pulsar 1s infinite}
-@keyframes pulsar{0%{background:#300000}50%{background:#480000}100%{background:#300000}}
-
-.tela{display:none;height:100vh;padding:20px}
-.tela.ativa{display:flex;flex-direction:column;justify-content:center;align-items:center}
-
-h1,h2{margin-bottom:20px;text-align:center}
-
-button{
-  background:#111;color:#eee;border:1px solid #555;
-  padding:12px 22px;margin:6px;cursor:pointer
-}
-button:hover{background:#333}
-
-#jogo{justify-content:space-between}
-.status{display:flex;gap:15px;flex-wrap:wrap;margin-bottom:10px}
-
-#log{
-  width:100%;max-width:520px;height:200px;
-  border:1px solid #333;padding:10px;
-  background:#0e0e0e;overflow-y:auto;font-size:.9em
-}
-
-.acoes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-
-/* Conquistas e Inventário */
-#btnConq,#btnInv{position:fixed;top:10px;z-index:10}
-#btnConq{right:10px}
-#btnInv{right:70px}
-
-#painelConq,#painelInv{
-  position:fixed;top:0;width:280px;height:100vh;
-  background:#0b0b0b;border-left:1px solid #333;
-  padding:15px;display:none;overflow-y:auto;z-index:20
-}
-#painelConq{right:0}
-#painelInv{right:0}
-
-.conq,.item{padding:8px;border-bottom:1px solid #222;font-size:.85em;cursor:pointer}
-.locked{color:#555}
-.unlocked{color:#ddd}
-
-/* Tooltip de item */
-.item:hover::after{
-  content: attr(data-desc);
-  display:block;
-  background:#222;
-  color:#eee;
-  padding:3px 6px;
-  margin-top:2px;
-  font-size:0.8em;
-}
-
-/* Botoes de save/restart */
-#botoesSave{
-  position:fixed;
-  left:10px;
-  top:35px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  z-index:20;
-}
+/* Base */
+body { font-family: Arial, sans-serif; background:#1b1b1b; color:#f1f2f6; margin:0; padding:0; overflow-x:hidden;}
+button { cursor:pointer; font-weight:bold; }
+#game-container { max-width:800px; margin:0 auto; padding:20px; }
+.dialog-box { background:#2f2f2f; padding:15px; border-radius:10px; margin-bottom:15px; min-height:100px; overflow-y:auto; }
+#status-bar { display:flex; justify-content:space-between; margin-bottom:10px; }
+.status { background:#3742fa; padding:5px 10px; border-radius:5px; margin-right:5px; }
+.inventory, .cards-inv { position:fixed; top:50px; right:20px; width:250px; max-height:400px; background:#2f2f2f; padding:15px; border-radius:10px; overflow-y:auto; display:none; z-index:1000;}
+.inventory h3, .cards-inv h3 { margin-top:0; text-align:center; color:#ff4757; }
+#card-view { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:300px; background:#2f2f2f; padding:20px; border-radius:10px; display:none; z-index:2000; }
+#card-view h4 { color:#3742fa; margin-bottom:10px; }
+button.close-btn { background:#ff4757; border:none; color:#fff; padding:5px 10px; border-radius:5px; margin-top:10px; }
+button.action-btn { background:#3742fa; border:none; color:#fff; padding:10px; border-radius:5px; margin:5px 0; display:block; width:100%; }
+#footer { text-align:center; padding:10px; background:#111; color:#777; position:fixed; bottom:0; width:100%; }
+#menu, #difficulty-screen, #game-screen { display:none; }
+#menu h1 { text-align:center; color:#ff4757; font-family: 'Courier New', monospace; font-size:3em; margin-top:50px; }
+#menu button { display:block; margin:20px auto; padding:15px 30px; font-size:1.2em; border:none; border-radius:10px; background:#3742fa; color:#fff; }
+#difficulty-screen { text-align:center; padding:50px; }
+#difficulty-screen button { display:inline-block; margin:10px; padding:15px 25px; border-radius:10px; background:#ff4757; color:#fff; border:none; font-weight:bold; }
 </style>
 </head>
 <body>
 
-<!-- Botões fixos -->
-<button id="btnConq" onclick="toggleConq()">🏆</button>
-<button id="btnInv" onclick="toggleInv()">🎒</button>
-
-<div id="botoesSave">
-  <button id="btnSave" onclick="salvarJogo()">💾 Salvar Jogo</button>
-  <button onclick="reiniciarJogo()">🔄 Reiniciar</button>
+<!-- MENU -->
+<div id="menu">
+  <h1>100 Dias Survival</h1>
+  <button id="play-btn">Jogar</button>
 </div>
 
-<!-- Painéis -->
-<div id="painelConq">
-  <button onclick="toggleConq()">❌ Fechar</button>
-  <h3>Conquistas</h3>
-  <div id="listaConq"></div>
+<!-- SELEÇÃO DE DIFICULDADE -->
+<div id="difficulty-screen">
+  <h2>Escolha a dificuldade</h2>
+  <button onclick="startGame('facil')">Fácil</button>
+  <button onclick="startGame('medio')">Médio</button>
+  <button onclick="startGame('dificil')">Difícil</button>
 </div>
 
-<div id="painelInv">
-  <button onclick="toggleInv()">❌ Fechar</button>
-  <h3>Inventário</h3>
-  <div id="listaInv"></div>
-</div>
-
-<!-- Menu -->
-<div id="menu" class="tela ativa">
-  <h1>Sobreviva 100 Dias</h1>
-  <button onclick="mostrarTela('dificuldade')">PLAY</button>
-</div>
-
-<!-- Seleção de dificuldade -->
-<div id="dificuldade" class="tela">
-  <h2>Dificuldade</h2>
-  <button onclick="iniciarJogo('facil')">Fácil</button>
-  <button onclick="iniciarJogo('normal')">Normal</button>
-  <button onclick="iniciarJogo('dificil')">Difícil</button>
-</div>
-
-<!-- Jogo -->
-<div id="jogo" class="tela">
-  <div class="status">
-    <div>Dia: <span id="dia"></span>/100</div>
-    <div>Fome: <span id="fome"></span></div>
-    <div>Energia: <span id="energia"></span></div>
-    <div>Sanidade: <span id="sanidade"></span></div>
-    <div>Sede: <span id="sede"></span></div>
-    <div>Ações: <span id="acoesDia"></span>/3</div>
+<!-- TELA DE JOGO -->
+<div id="game-screen">
+  <div id="status-bar">
+    <div class="status" id="energia">Energia: 100</div>
+    <div class="status" id="fome">Fome: 100</div>
+    <div class="status" id="sede">Sede: 100</div>
+    <div class="status" id="sanidade">Sanidade: 100</div>
   </div>
-  <div id="log"></div>
-  <div class="acoes" id="acoes"></div>
+
+  <div class="dialog-box" id="dialog-box"></div>
+
+  <button onclick="toggleInventory()">Inventário</button>
+  <button onclick="toggleCards()">Cartas</button>
 </div>
 
-<!-- Vitória/Derrota -->
-<div id="vitoria" class="tela">
-  <h2>Você sobreviveu 100 dias!</h2>
-  <button onclick="mostrarTela('menu')">Menu</button>
+<!-- INVENTÁRIO DE ITENS -->
+<div class="inventory" id="inventory">
+  <h3>Inventário</h3>
+  <div id="inventory-items"></div>
+  <button class="close-btn" onclick="toggleInventory()">Fechar</button>
 </div>
 
-<div id="derrota" class="tela">
-  <h2>Você não resistiu.</h2>
-  <button onclick="mostrarTela('menu')">Menu</button>
+<!-- INVENTÁRIO DE CARTAS -->
+<div class="cards-inv" id="cards-inv">
+  <h3>Cartas</h3>
+  <div id="cards-items"></div>
+  <button class="close-btn" onclick="toggleCards()">Fechar</button>
 </div>
+
+<!-- VISUALIZAÇÃO DE CARTA -->
+<div id="card-view">
+  <h4 id="card-title"></h4>
+  <p id="card-content"></p>
+  <button class="close-btn" onclick="closeCardView()">Sair</button>
+</div>
+
+<div id="footer">Versão atual: 0.0.2 (Beta)</div>
 
 <script>
-// ===== DOM =====
-const diaEl = document.getElementById("dia");
-const fomeEl = document.getElementById("fome");
-const energiaEl = document.getElementById("energia");
-const sanidadeEl = document.getElementById("sanidade");
-const sedeEl = document.getElementById("sede");
-const logEl = document.getElementById("log");
-const acoesEl = document.getElementById("acoes");
-const acoesDiaEl = document.getElementById("acoesDia");
-const listaConq = document.getElementById("listaConq");
-const listaInv = document.getElementById("listaInv");
-
-// ===== AUDIO =====
-const ctx = new (window.AudioContext||window.webkitAudioContext)();
-function som(freq=200,dur=.1){
-  const o=ctx.createOscillator(),g=ctx.createGain();
-  o.type="square";o.frequency.value=freq;g.gain.value=.05;
-  o.connect(g);g.connect(ctx.destination);
-  o.start();o.stop(ctx.currentTime+dur);
-}
-
-// ===== CONQUISTAS =====
-const todasConq=[
- {id:"sobreviveu",t:"Sobrevivente",d:"Chegou ao dia 100"},
- {id:"louco",t:"Colapso",d:"Sanidade zerada"},
- {id:"evento_ruim",t:"Marcado",d:"Sofreu evento grave"},
- {id:"envenenado",t:"Envenenado",d:"Sofreu uma doença grave e sobreviveu"},
- {id:"resistente",t:"Resistente",d:"Sobreviveu com status muito baixos"},
- {id:"explorador",t:"Explorador",d:"Usou Explorar 20 vezes"},
- {id:"colecionador",t:"Colecionador",d:"Pegou todos os tipos de itens"},
- {id:"extremo",t:"Sobrevivente Extremo",d:"Sobreviveu a um evento crítico de fraqueza ou doença"}
-];
-let conq=JSON.parse(localStorage.getItem("conq")||"[]");
-function unlock(id){
-  if(!conq.includes(id)){
-    conq.push(id);
-    localStorage.setItem("conq",JSON.stringify(conq));
-    renderConq();
-  }
-}
-function renderConq(){
-  listaConq.innerHTML="";
-  todasConq.forEach(c=>{
-    const d=document.createElement("div");
-    d.className="conq "+(conq.includes(c.id)?"unlocked":"locked");
-    d.innerHTML=`<strong>${c.t}</strong> - ${c.d}`;
-    listaConq.appendChild(d);
-  });
-}
-renderConq();
-function toggleConq(){
-  painelConq.style.display=painelConq.style.display==="block"?"none":"block";
-}
-
-// ===== INVENTÁRIO =====
+// ESTADOS
+let energia=100,fome=100,sede=100,sanidade=100,dia=1;
 let inventario = [];
-function addItem(item){
-  inventario.push(item);
-  renderInv();
+let cartas = [];
+let cartasLidas = [];
+let dialogBox=document.getElementById('dialog-box');
+let gameScreen=document.getElementById('game-screen');
+let menuScreen=document.getElementById('menu');
+let difficultyScreen=document.getElementById('difficulty-screen');
+let selectedDifficulty='facil';
+let historiaCapitulos=[
+  "Você acorda sozinho em uma área desconhecida. É preciso sobreviver por 100 dias para escapar desse lugar.",
+  "Dia 10: Você encontra sinais de outros sobreviventes, mas não sabe se são amigáveis.",
+  "Dia 20: Tempestades se tornam frequentes. Sobreviver exige cuidado com fome e sede.",
+  "Dia 30: Descobre restos de antigas construções e cartas misteriosas espalhadas pelo local.",
+  "Dia 40: Animais aparecem à noite; alguns ajudam, outros atacam.",
+  "Dia 50: Recebe uma carta com dicas de sobrevivência importantes.",
+  "Dia 60: A situação do mundo se revela mais sombria, escolhas começam a ter consequências graves.",
+  "Dia 70: Novos personagens aparecem e interações se tornam decisivas.",
+  "Dia 80: Você começa a entender a história do mundo e sua própria missão.",
+  "Dia 90: Últimos dias críticos; cada ação importa.",
+  "Dia 100: A sobrevivência chegou ao limite. O desfecho final se aproxima."
+];
+
+// CARTAS EXEMPLO
+let todasCartas=[
+  {id:1,nome:"Carta 1",info:"Diário antigo: dicas sobre encontrar água e comida."},
+  {id:2,nome:"Carta 2",info:"Nota sobre um sobrevivente que passou por aqui."},
+  {id:3,nome:"Carta 3",info:"Mapa rudimentar de rotas seguras."},
+  {id:4,nome:"Carta 4",info:"História de animais que rondam a área."},
+  {id:5,nome:"Carta 5",info:"Relato de eventos meteorológicos perigosos."},
+  {id:6,nome:"Carta 6",info:"Carta com truque de manter a sanidade."},
+  {id:7,nome:"Carta 7",info:"História de um grupo de sobreviventes desaparecido."},
+  {id:8,nome:"Carta 8",info:"Mensagem de esperança deixada em um abrigo."},
+  {id:9,nome:"Carta 9",info:"Diário com detalhes da construção de ferramentas."},
+  {id:10,nome:"Carta 10",info:"Carta com dicas de interações com animais."},
+  {id:11,nome:"Carta 11",info:"Registro de doenças e remédios encontrados."},
+  {id:12,nome:"Carta 12",info:"Carta descrevendo eventos passados na região."},
+  {id:13,nome:"Carta 13",info:"Mensagem sobre áreas perigosas a evitar."},
+  {id:14,nome:"Carta 14",info:"Carta com dicas de exploração noturna."},
+  {id:15,nome:"Carta 15",info:"Segredo final sobre a sobrevivência total."}
+];
+
+// INICIALIZAÇÃO
+document.getElementById('play-btn').onclick=()=>{menuScreen.style.display='none';difficultyScreen.style.display='block';}
+
+// START GAME
+function startGame(difficulty){
+  selectedDifficulty=difficulty;
+  difficultyScreen.style.display='none';
+  gameScreen.style.display='block';
+  mostrarDialogo(historiaCapitulos[0]);
 }
-function renderInv(){
-  listaInv.innerHTML="";
-  inventario.forEach((i,index)=>{
-    const d=document.createElement("div");
-    d.className="item";
-    d.dataset.desc = i.desc;
-    d.textContent = i.nome;
-    d.onclick = ()=>usarItem(index);
-    listaInv.appendChild(d);
+
+// DIALOGO
+function mostrarDialogo(texto){
+  dialogBox.innerHTML+=`<p>${texto}</p>`;
+  dialogBox.scrollTop = dialogBox.scrollHeight;
+}
+
+// INVENTÁRIO
+function toggleInventory(){
+  let inv=document.getElementById('inventory');
+  inv.style.display=(inv.style.display==='block')?'none':'block';
+  atualizarInventario();
+}
+function atualizarInventario(){
+  let container=document.getElementById('inventory-items');
+  container.innerHTML='';
+  inventario.forEach((item,i)=>{
+    let btn=document.createElement('button');
+    btn.innerText=item.nome;
+    btn.className='action-btn';
+    btn.title=item.descricao;
+    btn.onclick=()=>usarItem(i);
+    container.appendChild(btn);
   });
 }
-function toggleInv(){
-  painelInv.style.display=painelInv.style.display==="block"?"none":"block";
-}
-function usarItem(index){
-  const i = inventario[index];
-  if(i.efeito) i.efeito();
-  logMsg(`Você usou: ${i.nome}`);
-  inventario.splice(index,1);
-  renderInv();
-  atualizarUI();
+function usarItem(idx){
+  let item=inventario[idx];
+  mostrarDialogo(`Você usou ${item.nome}. ${item.efeito}`);
+  if(item.tipo!=='permanente'){ inventario.splice(idx,1); atualizarInventario();}
 }
 
-// ===== TELAS =====
-function mostrarTela(id){
-  document.body.className="";
-  ["menu","dificuldade","jogo","vitoria","derrota"]
-    .forEach(t=>document.getElementById(t).classList.remove("ativa"));
-  document.getElementById(id).classList.add("ativa");
+// CARTAS
+function toggleCards(){
+  let inv=document.getElementById('cards-inv');
+  inv.style.display=(inv.style.display==='block')?'none':'block';
+  atualizarCartas();
 }
-
-// ===== RECORDES =====
-let recordeDias = parseInt(localStorage.getItem("recordeDias")||"0");
-const recordeEl = document.createElement("div");
-recordeEl.style.position="fixed";
-recordeEl.style.left="10px";
-recordeEl.style.top="10px";
-recordeEl.style.fontSize="0.9em";
-recordeEl.style.zIndex="15";
-recordeEl.textContent = `Recorde: ${recordeDias} dias`;
-document.body.appendChild(recordeEl);
-function atualizarRecorde(){
-  if(dia > recordeDias){
-    recordeDias = dia;
-    localStorage.setItem("recordeDias", recordeDias);
-    recordeEl.textContent = `Recorde: ${recordeDias} dias`;
-  }
-}
-
-// ===== JOGO =====
-let dia,fome,energia,sanidade,sede,dificuldade,acoesNoDia,explorarCont=0;
-let ultimoSave=0; // dia do último save
-
-function iniciarJogo(diff){
-  dificuldade=diff;
-  dia=1; acoesNoDia=0; explorarCont=0; ultimoSave=0;
-
-  if(diff==="facil"){fome=70;energia=70;sanidade=65;sede=70;}
-  if(diff==="normal"){fome=60;energia=60;sanidade=55;sede=60;}
-  if(diff==="dificil"){fome=50;energia=50;sanidade=45;sede=50;}
-
-  inventario=[];
-  logEl.innerHTML="";
-  atualizarUI();
-  gerarAcoes();
-  mostrarTela("jogo");
-}
-
-// ===== SALVAR E REINICIAR =====
-function salvarJogo(){
-  if(dia - ultimoSave < 3){
-    alert("Só é possível salvar a cada 3 dias.");
-    return;
-  }
-  const save = {
-    dia,fome,energia,sanidade,sede,dificuldade,acoesNoDia,inventario,explorarCont,conq
-  };
-  localStorage.setItem("saveGame", JSON.stringify(save));
-  ultimoSave = dia;
-  alert("Jogo salvo!");
-}
-
-function reiniciarJogo(){
-  if(confirm("Tem certeza que deseja reiniciar? O save será apagado.")){
-    localStorage.removeItem("saveGame");
-    mostrarTela("menu");
-  }
-}
-
-// ===== RESTAURAR SAVE =====
-function carregarSave(){
-  const save = JSON.parse(localStorage.getItem("saveGame"));
-  if(save){
-    dia=save.dia;
-    fome=save.fome;
-    energia=save.energia;
-    sanidade=save.sanidade;
-    sede=save.sede;
-    dificuldade=save.dificuldade;
-    acoesNoDia=save.acoesNoDia;
-    inventario=save.inventario;
-    explorarCont=save.explorarCont;
-    conq=save.conq||[];
-    renderConq();
-    renderInv();
-    atualizarUI();
-    gerarAcoes();
-    mostrarTela("jogo");
-  }
-}
-
-// ===== ATUALIZAR UI =====
-function atualizarUI(){
-  diaEl.textContent=dia;
-  fomeEl.textContent=Math.max(0,fome);
-  energiaEl.textContent=Math.max(0,energia);
-  sanidadeEl.textContent=Math.max(0,sanidade);
-  sedeEl.textContent=Math.max(0,sede);
-  acoesDiaEl.textContent=acoesNoDia;
-
-  document.body.className="";
-  if(fome<=25||energia<=25||sanidade<=25||sede<=25)document.body.classList.add("perigo");
-  if(fome<=10||energia<=10||sanidade<=10||sede<=10)document.body.classList.add("critico");
-}
-
-// ===== LOG =====
-function logMsg(m){
-  logEl.innerHTML+=`<div>> ${m}</div>`;
-  logEl.scrollTop=logEl.scrollHeight;
-}
-
-// ===== AÇÕES =====
-function gerarAcoes(){
-  acoesEl.innerHTML="";
-  [
-    { t:"Comer restos", frases:["Você come algo duvidoso.","O gosto é quase insuportável."], efeito(){fome+=12;sanidade-=3;} },
-    { t:"Dormir", frases:["O sono vem quebrado.","Pesadelos te acompanham."], efeito(){energia+=14;fome-=8;} },
-    { t:"Explorar", frases:["Você se afasta do abrigo.","Algo parece errado lá fora."], efeito(){energia-=12;fome-=12;explorar();} }
-  ].forEach(a=>{
-    const b=document.createElement("button");
-    b.textContent=a.t;
-    b.onclick=()=>acao(a);
-    acoesEl.appendChild(b);
+function atualizarCartas(){
+  let container=document.getElementById('cards-items');
+  container.innerHTML='';
+  cartas.forEach(c=>{
+    let btn=document.createElement('button');
+    btn.innerText=c.nome;
+    btn.className='action-btn';
+    btn.style.backgroundColor=cartasLidas.includes(c.id)?'#6c5ce7':'#555';
+    btn.onclick=()=>abrirCarta(c.id);
+    container.appendChild(btn);
   });
 }
+function abrirCarta(id){
+  let c=cartas.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('card-title').innerText=c.nome;
+  document.getElementById('card-content').innerText=c.info;
+  document.getElementById('card-view').style.display='block';
+  if(!cartasLidas.includes(c.id)) cartasLidas.push(c.id);
+  checarConquistaCartas();
+}
+function closeCardView(){ document.getElementById('card-view').style.display='none'; }
+function checarConquistaCartas(){ if(cartasLidas.length>=15) mostrarDialogo("Conquista desbloqueada: Leu todas as cartas!"); }
 
-// ===== EXPLORAÇÃO & ITENS =====
+// EXEMPLO DE EVENTO ALEATORIO (explorar)
 function explorar(){
-  explorarCont++;
-  if(explorarCont>=20) unlock("explorador");
-
-  if(Math.random()<0.5){ 
-    const itens=[
-      {nome:"Comida",desc:"Restaura 15 de fome",efeito:()=>{fome+=15;}},
-      {nome:"Água",desc:"Restaura 15 de sede",efeito:()=>{sede+=15;}},
-      {nome:"Energético",desc:"Restaura 15 de energia",efeito:()=>{energia+=15;}},
-      {nome:"Remédio",desc:"Restaura 15 de sanidade",efeito:()=>{sanidade+=15;}}
-    ];
-    const item=itens[Math.floor(Math.random()*itens.length)];
-    addItem(item);
-    logMsg(`Você encontrou um item: ${item.nome}`);
+  // chance de achar carta
+  if(Math.random()<0.1){
+    let disponiveis=todasCartas.filter(c=>!cartas.includes(c));
+    if(disponiveis.length>0){
+      let carta=disponiveis[Math.floor(Math.random()*disponiveis.length)];
+      cartas.push(carta);
+      mostrarDialogo(`Você encontrou uma carta: ${carta.nome}`);
+    }
+  }
+  // chance de achar item
+  if(Math.random()<0.3){
+    let item={nome:"Comida",efeito:"Aumenta fome em 20",tipo:"temporario",descricao:"Restaurar 20 de fome"};
+    inventario.push(item);
+    mostrarDialogo(`Você encontrou um item: ${item.nome}`);
   }
 }
 
-// ===== EVENTOS ALEATÓRIOS =====
-function eventoAleatorio(){
-  let impacto = dificuldade==="facil"?1:dificuldade==="normal"?1.4:1.8;
-  if(Math.random()<0.7){
-    const eventos=[
-      ()=>{sanidade-=8*impacto; logMsg("A sensação de ser observado retorna."); unlock("evento_ruim"); som(90,.3);},
-      ()=>{fome-=10*impacto; logMsg("Parte do pouco que restava se perde."); som(70,.3);},
-      ()=>{energia-=12*impacto; logMsg("Você tropeça e se machuca, energia reduz."); som(120,.3);},
-      ()=>{sede-=12*impacto; logMsg("O calor castiga, sua sede aumenta."); som(150,.3);},
-      ()=>{
-        if(Math.random()<0.3){sanidade-=15*impacto; energia-=10*impacto;
-          logMsg("Você contraiu uma doença! Remédios podem curar."); unlock("envenenado"); som(60,.6);}
-      }
-    ];
-    eventos[Math.floor(Math.random()*eventos.length)]();
-  }
+// SOM ARTIFICIAL (Exemplo de efeito)
+function playBeep(){
+  let ctx=new (window.AudioContext||window.webkitAudioContext)();
+  let osc=ctx.createOscillator();
+  osc.type='square'; osc.frequency.value=440;
+  osc.connect(ctx.destination); osc.start();
+  osc.stop(ctx.currentTime+0.2);
 }
 
-// ===== AÇÃO PRINCIPAL =====
-function acao(a){
-  som(220,.1);
-  logMsg(a.frases[Math.floor(Math.random()*a.frases.length)]);
-  a.efeito();
-  eventoAleatorio();
-
-  acoesNoDia++;
-  if(acoesNoDia>=3){
-    dia++;
-    acoesNoDia=0;
-    logMsg("A noite chega. Você sobreviveu a mais um dia.");
-    atualizarRecorde();
-    if(fome<15 && energia<15 && sanidade<15 && sede<15) unlock("resistente");
-  }
-
-  atualizarUI();
-  checarFim();
+// TRILHA DE FUNDO SIMPLES
+function playBackgroundLoop(){
+  let ctx=new (window.AudioContext||window.webkitAudioContext)();
+  let osc=ctx.createOscillator();
+  let gain=ctx.createGain();
+  osc.type='sine'; osc.frequency.value=60;
+  gain.gain.value=0.02;
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start();
+  osc.loop=true;
 }
-
-// ===== CHECAR FIM =====
-function checarFim(){
-  if(fome<=0||energia<=0||sanidade<=0||sede<=0){
-    if(sanidade<=0) unlock("louco");
-    som(60,.6);
-    mostrarTela("derrota");
-    return;
-  }
-  if(dia>100){
-    unlock("sobreviveu");
-    som(700,.5);
-    mostrarTela("vitoria");
-  }
-}
-
-// ===== CARREGAR SAVE AO INICIAR =====
-window.onload = function(){
-  const saveExist = localStorage.getItem("saveGame");
-  if(saveExist && confirm("Save encontrado! Deseja continuar de onde parou?")){
-    carregarSave();
-  }
-}
-
-// ===== REGISTRAR SERVICE WORKER =====
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("Service Worker registrado com sucesso!"))
-    .catch(err => console.log("Erro ao registrar SW:", err));
-}
+playBackgroundLoop();
 </script>
+
 </body>
 </html>
