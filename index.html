@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>100 Dias Survival - ByteQuest</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111">
 <style>
-/* Base */
 body { font-family: Arial, sans-serif; background:#1b1b1b; color:#f1f2f6; margin:0; padding:0; overflow-x:hidden;}
 button { cursor:pointer; font-weight:bold; }
 #game-container { max-width:800px; margin:0 auto; padding:20px; }
@@ -105,7 +106,7 @@ let historiaCapitulos=[
   "Dia 100: A sobrevivência chegou ao limite. O desfecho final se aproxima."
 ];
 
-// CARTAS EXEMPLO
+// CARTAS
 let todasCartas=[
   {id:1,nome:"Carta 1",info:"Diário antigo: dicas sobre encontrar água e comida."},
   {id:2,nome:"Carta 2",info:"Nota sobre um sobrevivente que passou por aqui."},
@@ -195,9 +196,8 @@ function abrirCarta(id){
 function closeCardView(){ document.getElementById('card-view').style.display='none'; }
 function checarConquistaCartas(){ if(cartasLidas.length>=15) mostrarDialogo("Conquista desbloqueada: Leu todas as cartas!"); }
 
-// EXEMPLO DE EVENTO ALEATORIO (explorar)
+// EVENTO EXEMPLO
 function explorar(){
-  // chance de achar carta
   if(Math.random()<0.1){
     let disponiveis=todasCartas.filter(c=>!cartas.includes(c));
     if(disponiveis.length>0){
@@ -206,7 +206,6 @@ function explorar(){
       mostrarDialogo(`Você encontrou uma carta: ${carta.nome}`);
     }
   }
-  // chance de achar item
   if(Math.random()<0.3){
     let item={nome:"Comida",efeito:"Aumenta fome em 20",tipo:"temporario",descricao:"Restaurar 20 de fome"};
     inventario.push(item);
@@ -214,7 +213,7 @@ function explorar(){
   }
 }
 
-// SOM ARTIFICIAL (Exemplo de efeito)
+// SOM ARTIFICIAL
 function playBeep(){
   let ctx=new (window.AudioContext||window.webkitAudioContext)();
   let osc=ctx.createOscillator();
@@ -223,7 +222,7 @@ function playBeep(){
   osc.stop(ctx.currentTime+0.2);
 }
 
-// TRILHA DE FUNDO SIMPLES
+// TRILHA DE FUNDO
 function playBackgroundLoop(){
   let ctx=new (window.AudioContext||window.webkitAudioContext)();
   let osc=ctx.createOscillator();
