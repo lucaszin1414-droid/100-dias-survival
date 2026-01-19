@@ -1,11 +1,11 @@
 {
-  "name": "Sobreviva 100 Dias",
+  "name": "100 Dias Survival",
   "short_name": "100Dias",
-  "description": "Sobreviva 100 dias enfrentando fome, sede, sanidade e energia.",
-  "start_url": "./index.html",
+  "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#070707",
-  "theme_color": "#e0e0e0",
+  "background_color": "#111",
+  "theme_color": "#111",
+  "description": "Sobreviva 100 dias em um mundo hostil. Jogo grátis da ByteQuest.",
   "icons": [
     {
       "src": "icon-192.png",
