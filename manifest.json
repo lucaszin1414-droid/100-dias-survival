@@ -1,11 +1,12 @@
 {
   "name": "100 Dias Survival",
   "short_name": "100Dias",
-  "start_url": "/index.html",
+  "description": "Sobreviva por 100 dias em um mundo colapsado. Um jogo de sobrevivência narrativo.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "description": "Sobreviva 100 dias em um mundo hostil. Jogo gratuito da ByteQuest.",
+  "background_color": "#0b0b0b",
+  "theme_color": "#0b0b0b",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
