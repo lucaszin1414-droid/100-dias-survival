@@ -1,29 +1,28 @@
-const CACHE_NAME = '100dias-cache-v5'; // aumente a cada atualização
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  // adicione CSS/JS/imagens aqui se houver
-];
+const CACHE_NAME = "100dias-cache-v7";
 
-self.addEventListener('install', event => {
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()) // força ativação imediata
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll([
+        "/",
+        "/index.html",
+        "/manifest.json"
+      ])
+    ).then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(resp => resp || fetch(event.request))
   );
