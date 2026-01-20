@@ -1,248 +1,333 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>100 Dias Survival - ByteQuest</title>
+  <meta charset="UTF-8" />
+  <title>100 Dias Survival</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111">
+  <link rel="manifest" href="manifest.json">
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f0f0f;
-  color: #eee;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0b0b;
+      color: #e0e0e0;
+    }
 
-button {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  background: #5f27cd;
-  color: #fff;
-}
+    button {
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
 
-#menu, #difficulty, #game {
-  display: none;
-  padding: 40px;
-  text-align: center;
-}
+    button:hover {
+      background: #333;
+    }
 
-h1 {
-  font-size: 3em;
-  color: #ff4757;
-}
+    .hidden { display: none; }
 
-#status {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-}
+    #topBar {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #111;
+      font-size: 14px;
+    }
 
-.status {
-  background: #2f3542;
-  padding: 8px 12px;
-  border-radius: 6px;
-}
+    #stats {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+    }
 
-#log {
-  background: #1e272e;
-  height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: left;
-  margin-bottom: 15px;
-}
+    #messages {
+      height: 180px;
+      overflow-y: auto;
+      background: #000;
+      padding: 8px;
+      border-top: 1px solid #333;
+      font-size: 14px;
+    }
 
-#footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  text-align: center;
-  background: #000;
-  color: #777;
-  padding: 5px;
-  font-size: 0.9em;
-}
-</style>
+    #actions {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      justify-content: center;
+      background: #111;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .modalContent {
+      background: #111;
+      border: 1px solid #444;
+      padding: 15px;
+      max-width: 420px;
+      width: 90%;
+    }
+
+    #footer {
+      position: fixed;
+      bottom: 5px;
+      right: 10px;
+      font-size: 11px;
+      opacity: .6;
+    }
+
+    #sideButtons {
+      position: fixed;
+      right: 10px;
+      top: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #inventoryList button,
+    #cardsList button {
+      width: 100%;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+  </style>
 </head>
 
 <body>
 
 <!-- MENU -->
-<div id="menu">
-  <h1>100 Dias Survival</h1>
-  <button id="playBtn">PLAY</button>
+<div id="menu" class="modal">
+  <div class="modalContent">
+    <h2>100 Dias Survival</h2>
+    <p>Sobreviva. Descubra a verdade. Aguente até o fim.</p>
+    <button onclick="goDifficulty()">PLAY</button>
+  </div>
 </div>
 
 <!-- DIFICULDADE -->
-<div id="difficulty">
-  <h2>Escolha a dificuldade</h2>
-  <button onclick="startGame('facil')">Fácil</button>
-  <button onclick="startGame('medio')">Médio</button>
-  <button onclick="startGame('dificil')">Difícil</button>
-</div>
-
-<!-- JOGO -->
-<div id="game">
-  <div id="status">
-    <div class="status" id="energia">Energia: 100</div>
-    <div class="status" id="fome">Fome: 100</div>
-    <div class="status" id="sede">Sede: 100</div>
-    <div class="status" id="sanidade">Sanidade: 100</div>
+<div id="difficulty" class="modal hidden">
+  <div class="modalContent">
+    <h3>Dificuldade</h3>
+    <button onclick="startGame('easy')">Fácil</button><br><br>
+    <button onclick="startGame('normal')">Normal</button><br><br>
+    <button onclick="startGame('hard')">Difícil</button>
   </div>
-
-  <div id="log"></div>
-
-  <button onclick="explorar()">Explorar</button>
 </div>
 
-<div id="footer">Versão 0.0.2 (beta)</div>
+<!-- INVENTÁRIO -->
+<div id="inventory" class="modal hidden">
+  <div class="modalContent">
+    <h3>Inventário</h3>
+    <div id="inventoryList"></div>
+    <button onclick="closeInventory()">Fechar</button>
+  </div>
+</div>
+
+<!-- CARTAS -->
+<div id="cards" class="modal hidden">
+  <div class="modalContent">
+    <h3>Cartas</h3>
+    <div id="cardsList"></div>
+    <button onclick="closeCards()">Fechar</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="topBar" class="hidden">
+  <div id="stats"></div>
+  <div>
+    Dia <span id="day">1</span> |
+    Recorde: <span id="record">0</span>
+  </div>
+</div>
+
+<div id="sideButtons" class="hidden">
+  <button onclick="openInventory()">Inventário</button>
+  <button onclick="openCards()">Cartas</button>
+</div>
+
+<div id="actions" class="hidden">
+  <button onclick="actionExplore()">Explorar</button>
+  <button onclick="actionRest()">Descansar</button>
+  <button onclick="actionSearch()">Procurar Água</button>
+</div>
+
+<div id="messages" class="hidden"></div>
+
+<div id="footer">v0.0.2 (beta)</div>
 
 <script>
-/* ======================
-   VARIÁVEIS DO JOGO
-====================== */
-let energia = 100;
-let fome = 100;
-let sede = 100;
-let sanidade = 100;
-let dia = 1;
+/* ===== ESTADO ===== */
+let day = 1;
+let actionsLeft = 3;
+let record = localStorage.getItem("record") || 0;
 
-/* ======================
-   ÁUDIO (CORRIGIDO)
-====================== */
-let audioContext = null;
-let bgOsc = null;
-let bgGain = null;
-let audioStarted = false;
-
-function startBackgroundAudio() {
-  if (audioStarted) return;
-
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  bgOsc = audioContext.createOscillator();
-  bgGain = audioContext.createGain();
-
-  bgOsc.type = "sine";
-  bgOsc.frequency.value = 60;
-  bgGain.gain.value = 0.02;
-
-  bgOsc.connect(bgGain);
-  bgGain.connect(audioContext.destination);
-  bgOsc.start();
-
-  audioStarted = true;
-}
-
-function playEffect(freq = 600) {
-  if (!audioContext) return;
-
-  const osc = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-
-  osc.frequency.value = freq;
-  osc.type = "square";
-  gain.gain.value = 0.05;
-
-  osc.connect(gain);
-  gain.connect(audioContext.destination);
-
-  osc.start();
-  osc.stop(audioContext.currentTime + 0.15);
-}
-
-/* ======================
-   TELAS
-====================== */
-const menu = document.getElementById("menu");
-const difficulty = document.getElementById("difficulty");
-const game = document.getElementById("game");
-const log = document.getElementById("log");
-
-menu.style.display = "block";
-
-document.getElementById("playBtn").onclick = () => {
-  startBackgroundAudio(); // ✅ áudio só após clique
-  menu.style.display = "none";
-  difficulty.style.display = "block";
+let stats = {
+  fome: 70,
+  sede: 70,
+  energia: 70,
+  sanidade: 70
 };
 
-/* ======================
-   INICIAR JOGO
-====================== */
+let inventory = {};
+let cards = {};
+let difficulty = "easy";
+
+/* ===== UI ===== */
+const msgBox = document.getElementById("messages");
+const statsBox = document.getElementById("stats");
+
+function log(msg) {
+  msgBox.innerHTML += "• " + msg + "<br>";
+  msgBox.scrollTop = msgBox.scrollHeight;
+}
+
+function updateUI() {
+  statsBox.innerHTML =
+    `Fome:${stats.fome} | Sede:${stats.sede} | Energia:${stats.energia} | Sanidade:${stats.sanidade}`;
+  document.getElementById("day").textContent = day;
+  document.getElementById("record").textContent = record;
+}
+
+/* ===== MENU ===== */
+function goDifficulty() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("difficulty").classList.remove("hidden");
+}
+
 function startGame(diff) {
-  difficulty.style.display = "none";
-  game.style.display = "block";
+  difficulty = diff;
+  document.getElementById("difficulty").classList.add("hidden");
 
-  logMsg("Você acorda em um mundo destruído.");
-  logMsg("Seu objetivo: sobreviver 100 dias.");
+  document.getElementById("topBar").classList.remove("hidden");
+  document.getElementById("actions").classList.remove("hidden");
+  document.getElementById("messages").classList.remove("hidden");
+  document.getElementById("sideButtons").classList.remove("hidden");
 
-  if (diff === "medio") {
-    energia = fome = sede = sanidade = 90;
-  }
-  if (diff === "dificil") {
-    energia = fome = sede = sanidade = 80;
-  }
+  log("Você acorda sem lembrar como chegou aqui.");
+  log("Seu único objetivo: sobreviver 100 dias.");
 
-  updateStatus();
+  updateUI();
 }
 
-/* ======================
-   JOGO
-====================== */
-function logMsg(text) {
-  log.innerHTML += `<p>Dia ${dia}: ${text}</p>`;
-  log.scrollTop = log.scrollHeight;
+/* ===== AÇÕES ===== */
+function consumeDay() {
+  actionsLeft--;
+  stats.fome -= 5;
+  stats.sede -= 6;
+  stats.energia -= 4;
+
+  if (actionsLeft <= 0) {
+    nextDay();
+  }
+  updateUI();
 }
 
-function updateStatus() {
-  document.getElementById("energia").innerText = `Energia: ${energia}`;
-  document.getElementById("fome").innerText = `Fome: ${fome}`;
-  document.getElementById("sede").innerText = `Sede: ${sede}`;
-  document.getElementById("sanidade").innerText = `Sanidade: ${sanidade}`;
+function nextDay() {
+  day++;
+  actionsLeft = 3;
+
+  if (day > record) {
+    record = day;
+    localStorage.setItem("record", record);
+  }
+
+  log("Um novo dia começa...");
+  randomEvent();
 }
 
-function explorar() {
-  playEffect();
+function actionExplore() {
+  log("Você explora os arredores...");
+  if (Math.random() < 0.4) addItem("Comida Enlatada");
+  if (Math.random() < 0.2) addCard("Relato Perdido");
+  consumeDay();
+}
 
-  energia -= 5;
-  fome -= 4;
-  sede -= 6;
+function actionRest() {
+  stats.energia += 10;
+  stats.sanidade += 5;
+  log("Você descansa um pouco.");
+  consumeDay();
+}
 
-  const eventos = [
-    "Você encontrou água limpa.",
-    "Você achou restos de comida.",
-    "Você ouviu sons estranhos ao longe.",
-    "Nada útil foi encontrado."
-  ];
+function actionSearch() {
+  stats.sede += 15;
+  log("Você encontra água potável.");
+  consumeDay();
+}
 
-  const evento = eventos[Math.floor(Math.random() * eventos.length)];
-  logMsg(evento);
-
-  if (evento.includes("água")) sede += 15;
-  if (evento.includes("comida")) fome += 15;
-  if (evento.includes("sons")) sanidade -= 5;
-
-  dia++;
-  updateStatus();
-
-  if (energia <= 0 || fome <= 0 || sede <= 0 || sanidade <= 0) {
-    logMsg("Você não resistiu...");
-    alert("GAME OVER");
-    location.reload();
+/* ===== EVENTOS ===== */
+function randomEvent() {
+  if (Math.random() < 0.3) {
+    log("Você adoeceu durante a noite.");
+    stats.energia -= 10;
+    stats.sanidade -= 10;
   }
+}
 
-  if (dia > 100) {
-    alert("VOCÊ SOBREVIVEU 100 DIAS!");
-    location.reload();
+/* ===== INVENTÁRIO ===== */
+function addItem(name) {
+  inventory[name] = (inventory[name] || 0) + 1;
+  log("Item encontrado: " + name);
+}
+
+function openInventory() {
+  const list = document.getElementById("inventoryList");
+  list.innerHTML = "";
+  for (let i in inventory) {
+    const btn = document.createElement("button");
+    btn.textContent = `${i} x${inventory[i]}`;
+    btn.onclick = () => useItem(i);
+    list.appendChild(btn);
   }
+  document.getElementById("inventory").classList.remove("hidden");
+}
+
+function closeInventory() {
+  document.getElementById("inventory").classList.add("hidden");
+}
+
+function useItem(item) {
+  if (item.includes("Comida")) stats.fome += 20;
+  inventory[item]--;
+  if (inventory[item] <= 0) delete inventory[item];
+  log("Você usou: " + item);
+  closeInventory();
+  updateUI();
+}
+
+/* ===== CARTAS ===== */
+function addCard(name) {
+  if (cards[name]) return;
+  cards[name] = true;
+  log("Você encontrou uma carta misteriosa.");
+}
+
+function openCards() {
+  const list = document.getElementById("cardsList");
+  list.innerHTML = "";
+  for (let c in cards) {
+    const btn = document.createElement("button");
+    btn.textContent = c;
+    btn.onclick = () => alert("Conteúdo da carta: " + c);
+    list.appendChild(btn);
+  }
+  document.getElementById("cards").classList.remove("hidden");
+}
+
+function closeCards() {
+  document.getElementById("cards").classList.add("hidden");
 }
 </script>
 
