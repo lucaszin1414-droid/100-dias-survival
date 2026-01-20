@@ -1,107 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>100 Dias Survival</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>100 Dias Survival</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
 
-  <link rel="manifest" href="manifest.json">
+<style>
+body {
+  margin: 0;
+  background: #0b0b0b;
+  color: #e0e0e0;
+  font-family: Arial, sans-serif;
+}
+button {
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+button:hover { background: #333; }
+.hidden { display: none; }
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0b0b0b;
-      color: #e0e0e0;
-    }
+#topBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #111;
+  font-size: 14px;
+}
+#stats { display: flex; gap: 10px; }
 
-    button {
-      background: #222;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
+#messages {
+  height: 200px;
+  overflow-y: auto;
+  background: #000;
+  padding: 8px;
+  border-top: 1px solid #333;
+}
 
-    button:hover {
-      background: #333;
-    }
+#actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #111;
+}
 
-    .hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+.modalContent {
+  background: #111;
+  border: 1px solid #444;
+  padding: 15px;
+  max-width: 420px;
+  width: 90%;
+}
 
-    #topBar {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 10px;
-      background: #111;
-      font-size: 14px;
-    }
+#sideButtons {
+  position: fixed;
+  right: 10px;
+  top: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-    #stats {
-      display: flex;
-      gap: 10px;
-      font-size: 13px;
-    }
-
-    #messages {
-      height: 180px;
-      overflow-y: auto;
-      background: #000;
-      padding: 8px;
-      border-top: 1px solid #333;
-      font-size: 14px;
-    }
-
-    #actions {
-      display: flex;
-      gap: 10px;
-      padding: 10px;
-      justify-content: center;
-      background: #111;
-    }
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-    }
-
-    .modalContent {
-      background: #111;
-      border: 1px solid #444;
-      padding: 15px;
-      max-width: 420px;
-      width: 90%;
-    }
-
-    #footer {
-      position: fixed;
-      bottom: 5px;
-      right: 10px;
-      font-size: 11px;
-      opacity: .6;
-    }
-
-    #sideButtons {
-      position: fixed;
-      right: 10px;
-      top: 60px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    #inventoryList button,
-    #cardsList button {
-      width: 100%;
-      margin-bottom: 4px;
-      text-align: left;
-    }
-  </style>
+#footer {
+  position: fixed;
+  bottom: 5px;
+  right: 10px;
+  font-size: 11px;
+  opacity: .6;
+}
+</style>
 </head>
 
 <body>
@@ -110,7 +90,7 @@
 <div id="menu" class="modal">
   <div class="modalContent">
     <h2>100 Dias Survival</h2>
-    <p>Sobreviva. Descubra a verdade. Aguente até o fim.</p>
+    <p>Sobreviva. Descubra a verdade.</p>
     <button onclick="goDifficulty()">PLAY</button>
   </div>
 </div>
@@ -118,7 +98,7 @@
 <!-- DIFICULDADE -->
 <div id="difficulty" class="modal hidden">
   <div class="modalContent">
-    <h3>Dificuldade</h3>
+    <h3>Escolha a dificuldade</h3>
     <button onclick="startGame('easy')">Fácil</button><br><br>
     <button onclick="startGame('normal')">Normal</button><br><br>
     <button onclick="startGame('hard')">Difícil</button>
@@ -146,10 +126,7 @@
 <!-- HUD -->
 <div id="topBar" class="hidden">
   <div id="stats"></div>
-  <div>
-    Dia <span id="day">1</span> |
-    Recorde: <span id="record">0</span>
-  </div>
+  <div>Dia <span id="day">1</span> | Recorde <span id="record">0</span></div>
 </div>
 
 <div id="sideButtons" class="hidden">
@@ -158,9 +135,9 @@
 </div>
 
 <div id="actions" class="hidden">
-  <button onclick="actionExplore()">Explorar</button>
-  <button onclick="actionRest()">Descansar</button>
-  <button onclick="actionSearch()">Procurar Água</button>
+  <button onclick="explore()">Explorar</button>
+  <button onclick="rest()">Descansar</button>
+  <button onclick="searchWater()">Buscar Água</button>
 </div>
 
 <div id="messages" class="hidden"></div>
@@ -168,23 +145,15 @@
 <div id="footer">v0.0.2 (beta)</div>
 
 <script>
-/* ===== ESTADO ===== */
 let day = 1;
 let actionsLeft = 3;
 let record = localStorage.getItem("record") || 0;
-
-let stats = {
-  fome: 70,
-  sede: 70,
-  energia: 70,
-  sanidade: 70
-};
-
-let inventory = {};
-let cards = {};
 let difficulty = "easy";
 
-/* ===== UI ===== */
+let stats = { fome:70, sede:70, energia:70, sanidade:70 };
+let inventory = {};
+let cards = {};
+
 const msgBox = document.getElementById("messages");
 const statsBox = document.getElementById("stats");
 
@@ -198,6 +167,56 @@ function updateUI() {
     `Fome:${stats.fome} | Sede:${stats.sede} | Energia:${stats.energia} | Sanidade:${stats.sanidade}`;
   document.getElementById("day").textContent = day;
   document.getElementById("record").textContent = record;
+}
+
+/* ===== HISTÓRIA ===== */
+const story = {
+  intro: [
+    "Você acorda com a cabeça doendo.",
+    "O ar está pesado, silencioso demais.",
+    "Você não lembra como chegou aqui.",
+    "A única coisa clara em sua mente:",
+    "Você precisa sobreviver por 100 dias."
+  ],
+  10: [
+    "Os arredores começam a fazer sentido.",
+    "Casas abandonadas. Nenhum sinal de vida.",
+    "Algo aconteceu… e foi recente."
+  ],
+  20: [
+    "Você encontra marcas estranhas nas paredes.",
+    "Mensagens apagadas às pressas.",
+    "‘Eles mentiram para nós’, diz uma delas."
+  ],
+  30: [
+    "O rádio capta ruídos.",
+    "Uma voz distorcida repete coordenadas.",
+    "Talvez ainda exista alguém vivo."
+  ],
+  50: [
+    "Você começa a perceber mudanças em si mesmo.",
+    "O cansaço não passa.",
+    "Sobreviver está cobrando um preço."
+  ],
+  70: [
+    "Você entende agora.",
+    "Isso não foi um acidente.",
+    "Foi um experimento."
+  ],
+  90: [
+    "Pouco tempo resta.",
+    "A verdade está próxima.",
+    "Você só precisa aguentar mais um pouco."
+  ],
+  100: [
+    "O centésimo dia chega.",
+    "Você sobreviveu.",
+    "Mas o mundo nunca mais será o mesmo."
+  ]
+};
+
+function showStoryBlock(block) {
+  block.forEach(line => log("📜 " + line));
 }
 
 /* ===== MENU ===== */
@@ -215,22 +234,18 @@ function startGame(diff) {
   document.getElementById("messages").classList.remove("hidden");
   document.getElementById("sideButtons").classList.remove("hidden");
 
-  log("Você acorda sem lembrar como chegou aqui.");
-  log("Seu único objetivo: sobreviver 100 dias.");
-
+  showStoryBlock(story.intro);
   updateUI();
 }
 
-/* ===== AÇÕES ===== */
-function consumeDay() {
+/* ===== JOGO ===== */
+function consumeAction() {
   actionsLeft--;
   stats.fome -= 5;
   stats.sede -= 6;
   stats.energia -= 4;
 
-  if (actionsLeft <= 0) {
-    nextDay();
-  }
+  if (actionsLeft <= 0) nextDay();
   updateUI();
 }
 
@@ -238,42 +253,34 @@ function nextDay() {
   day++;
   actionsLeft = 3;
 
+  if (story[day]) showStoryBlock(story[day]);
+
   if (day > record) {
     record = day;
     localStorage.setItem("record", record);
   }
 
   log("Um novo dia começa...");
-  randomEvent();
 }
 
-function actionExplore() {
+function explore() {
   log("Você explora os arredores...");
-  if (Math.random() < 0.4) addItem("Comida Enlatada");
-  if (Math.random() < 0.2) addCard("Relato Perdido");
-  consumeDay();
+  if (Math.random() < 0.4) addItem("Comida");
+  if (Math.random() < 0.15) addCard("Registro Antigo");
+  consumeAction();
 }
 
-function actionRest() {
+function rest() {
+  log("Você descansa.");
   stats.energia += 10;
   stats.sanidade += 5;
-  log("Você descansa um pouco.");
-  consumeDay();
+  consumeAction();
 }
 
-function actionSearch() {
+function searchWater() {
+  log("Você encontra água.");
   stats.sede += 15;
-  log("Você encontra água potável.");
-  consumeDay();
-}
-
-/* ===== EVENTOS ===== */
-function randomEvent() {
-  if (Math.random() < 0.3) {
-    log("Você adoeceu durante a noite.");
-    stats.energia -= 10;
-    stats.sanidade -= 10;
-  }
+  consumeAction();
 }
 
 /* ===== INVENTÁRIO ===== */
@@ -281,25 +288,22 @@ function addItem(name) {
   inventory[name] = (inventory[name] || 0) + 1;
   log("Item encontrado: " + name);
 }
-
 function openInventory() {
   const list = document.getElementById("inventoryList");
   list.innerHTML = "";
   for (let i in inventory) {
-    const btn = document.createElement("button");
-    btn.textContent = `${i} x${inventory[i]}`;
-    btn.onclick = () => useItem(i);
-    list.appendChild(btn);
+    const b = document.createElement("button");
+    b.textContent = `${i} x${inventory[i]}`;
+    b.onclick = () => useItem(i);
+    list.appendChild(b);
   }
   document.getElementById("inventory").classList.remove("hidden");
 }
-
 function closeInventory() {
   document.getElementById("inventory").classList.add("hidden");
 }
-
 function useItem(item) {
-  if (item.includes("Comida")) stats.fome += 20;
+  stats.fome += 20;
   inventory[item]--;
   if (inventory[item] <= 0) delete inventory[item];
   log("Você usou: " + item);
@@ -311,25 +315,22 @@ function useItem(item) {
 function addCard(name) {
   if (cards[name]) return;
   cards[name] = true;
-  log("Você encontrou uma carta misteriosa.");
+  log("Você encontrou uma carta.");
 }
-
 function openCards() {
   const list = document.getElementById("cardsList");
   list.innerHTML = "";
   for (let c in cards) {
-    const btn = document.createElement("button");
-    btn.textContent = c;
-    btn.onclick = () => alert("Conteúdo da carta: " + c);
-    list.appendChild(btn);
+    const b = document.createElement("button");
+    b.textContent = c;
+    b.onclick = () => alert("A carta fala sobre o colapso do mundo.");
+    list.appendChild(b);
   }
   document.getElementById("cards").classList.remove("hidden");
 }
-
 function closeCards() {
   document.getElementById("cards").classList.add("hidden");
 }
 </script>
-
 </body>
 </html>
