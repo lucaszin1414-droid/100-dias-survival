@@ -28,7 +28,6 @@ button:hover { background: #333; }
   justify-content: space-between;
   padding: 6px 10px;
   background: #111;
-  font-size: 14px;
 }
 #stats { display: flex; gap: 10px; }
 
@@ -53,8 +52,8 @@ button:hover { background: #333; }
   inset: 0;
   background: rgba(0,0,0,.9);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 10;
 }
 .modalContent {
@@ -98,7 +97,7 @@ button:hover { background: #333; }
 <!-- DIFICULDADE -->
 <div id="difficulty" class="modal hidden">
   <div class="modalContent">
-    <h3>Escolha a dificuldade</h3>
+    <h3>Dificuldade</h3>
     <button onclick="startGame('easy')">Fácil</button><br><br>
     <button onclick="startGame('normal')">Normal</button><br><br>
     <button onclick="startGame('hard')">Difícil</button>
@@ -126,7 +125,7 @@ button:hover { background: #333; }
 <!-- HUD -->
 <div id="topBar" class="hidden">
   <div id="stats"></div>
-  <div>Dia <span id="day">1</span> | Recorde <span id="record">0</span></div>
+  <div>Dia <span id="day">1</span></div>
 </div>
 
 <div id="sideButtons" class="hidden">
@@ -145,18 +144,35 @@ button:hover { background: #333; }
 <div id="footer">v0.0.2 (beta)</div>
 
 <script>
+/* ===== ESTADO ===== */
 let day = 1;
 let actionsLeft = 3;
-let record = localStorage.getItem("record") || 0;
-let difficulty = "easy";
-
 let stats = { fome:70, sede:70, energia:70, sanidade:70 };
 let inventory = {};
 let cards = {};
 
+/* ===== ELEMENTOS ===== */
 const msgBox = document.getElementById("messages");
 const statsBox = document.getElementById("stats");
 
+/* ===== HISTÓRIA ===== */
+const story = {
+  intro: [
+    "Você acorda atordoado.",
+    "O mundo está silencioso demais.",
+    "Nada faz sentido.",
+    "A única certeza: sobreviver 100 dias."
+  ],
+  10: ["Casas vazias. Portas abertas.", "Algo forçou todos a fugir."],
+  20: ["Mensagens nas paredes.", "‘Não confie neles.’"],
+  30: ["Um rádio transmite ruídos.", "Uma voz pede ajuda."],
+  50: ["Seu corpo está mudando.", "O cansaço nunca passa."],
+  70: ["Você entende agora.", "Isso foi um experimento."],
+  90: ["A verdade está próxima.", "Poucos dias restam."],
+  100: ["Você sobreviveu.", "Mas a história não termina aqui."]
+};
+
+/* ===== UTIL ===== */
 function log(msg) {
   msgBox.innerHTML += "• " + msg + "<br>";
   msgBox.scrollTop = msgBox.scrollHeight;
@@ -166,57 +182,10 @@ function updateUI() {
   statsBox.innerHTML =
     `Fome:${stats.fome} | Sede:${stats.sede} | Energia:${stats.energia} | Sanidade:${stats.sanidade}`;
   document.getElementById("day").textContent = day;
-  document.getElementById("record").textContent = record;
 }
 
-/* ===== HISTÓRIA ===== */
-const story = {
-  intro: [
-    "Você acorda com a cabeça doendo.",
-    "O ar está pesado, silencioso demais.",
-    "Você não lembra como chegou aqui.",
-    "A única coisa clara em sua mente:",
-    "Você precisa sobreviver por 100 dias."
-  ],
-  10: [
-    "Os arredores começam a fazer sentido.",
-    "Casas abandonadas. Nenhum sinal de vida.",
-    "Algo aconteceu… e foi recente."
-  ],
-  20: [
-    "Você encontra marcas estranhas nas paredes.",
-    "Mensagens apagadas às pressas.",
-    "‘Eles mentiram para nós’, diz uma delas."
-  ],
-  30: [
-    "O rádio capta ruídos.",
-    "Uma voz distorcida repete coordenadas.",
-    "Talvez ainda exista alguém vivo."
-  ],
-  50: [
-    "Você começa a perceber mudanças em si mesmo.",
-    "O cansaço não passa.",
-    "Sobreviver está cobrando um preço."
-  ],
-  70: [
-    "Você entende agora.",
-    "Isso não foi um acidente.",
-    "Foi um experimento."
-  ],
-  90: [
-    "Pouco tempo resta.",
-    "A verdade está próxima.",
-    "Você só precisa aguentar mais um pouco."
-  ],
-  100: [
-    "O centésimo dia chega.",
-    "Você sobreviveu.",
-    "Mas o mundo nunca mais será o mesmo."
-  ]
-};
-
-function showStoryBlock(block) {
-  block.forEach(line => log("📜 " + line));
+function showStory(block) {
+  block.forEach(l => log("📜 " + l));
 }
 
 /* ===== MENU ===== */
@@ -225,16 +194,13 @@ function goDifficulty() {
   document.getElementById("difficulty").classList.remove("hidden");
 }
 
-function startGame(diff) {
-  difficulty = diff;
+function startGame() {
   document.getElementById("difficulty").classList.add("hidden");
-
   document.getElementById("topBar").classList.remove("hidden");
   document.getElementById("actions").classList.remove("hidden");
   document.getElementById("messages").classList.remove("hidden");
   document.getElementById("sideButtons").classList.remove("hidden");
-
-  showStoryBlock(story.intro);
+  showStory(story.intro);
   updateUI();
 }
 
@@ -252,21 +218,14 @@ function consumeAction() {
 function nextDay() {
   day++;
   actionsLeft = 3;
-
-  if (story[day]) showStoryBlock(story[day]);
-
-  if (day > record) {
-    record = day;
-    localStorage.setItem("record", record);
-  }
-
+  if (story[day]) showStory(story[day]);
   log("Um novo dia começa...");
 }
 
 function explore() {
-  log("Você explora os arredores...");
+  log("Você explora a área...");
   if (Math.random() < 0.4) addItem("Comida");
-  if (Math.random() < 0.15) addCard("Registro Antigo");
+  if (Math.random() < 0.2) addCard("Registro Antigo");
   consumeAction();
 }
 
@@ -323,7 +282,7 @@ function openCards() {
   for (let c in cards) {
     const b = document.createElement("button");
     b.textContent = c;
-    b.onclick = () => alert("A carta fala sobre o colapso do mundo.");
+    b.onclick = () => alert("A carta descreve o colapso do mundo.");
     list.appendChild(b);
   }
   document.getElementById("cards").classList.remove("hidden");
@@ -331,6 +290,19 @@ function openCards() {
 function closeCards() {
   document.getElementById("cards").classList.add("hidden");
 }
+
+/* ===== FORÇAR ESTADO INICIAL ===== */
+window.onload = () => {
+  document.getElementById("inventory").classList.add("hidden");
+  document.getElementById("cards").classList.add("hidden");
+  document.getElementById("difficulty").classList.add("hidden");
+  document.getElementById("topBar").classList.add("hidden");
+  document.getElementById("actions").classList.add("hidden");
+  document.getElementById("messages").classList.add("hidden");
+  document.getElementById("sideButtons").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+};
 </script>
+
 </body>
 </html>
